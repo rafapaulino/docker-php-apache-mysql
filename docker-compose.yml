@@ -1,0 +1,74 @@
+version: '3.8'
+
+networks:
+    app-network:
+        driver: bridge
+
+services: 
+
+    mailhog:
+        image: mailhog/mailhog:latest
+        container_name: mailhog
+        ports:
+          - "8001:8025"
+
+    apachephp: 
+        build: .docker/apache
+        #image: php:8.1.3RC1-apache
+        container_name: apachephp
+        restart: always
+        tty: true
+        ports:
+            - "8000:80"
+        #entrypoint: dockerize -template ./.docker/php/.env:/public/.env -wait tcp://db:3306 -wait -timeout 40s php-fpm
+        environment: 
+            - MYSQL_DATABASE=dev
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_USER=root
+        volumes:
+            #- ./docker/apache/000-default.conf:/etc/apache2/sites-enabled/000-default.conf
+            - ./application/html:/var/www
+            - ./application/logs/xdebug:/logs/xdebug
+            - ./docker/apache/xdebug.ini:/usr/local/etc/php/conf.d/zz-xdebug.ini
+        networks:
+            - app-network 
+        depends_on: 
+            - db
+            - redis
+
+    redis:
+        image: redis:alpine
+        expose:
+            - 6379
+        networks:
+            - app-network 
+
+    db:
+        image: mariadb
+        #command: --inno-db-use-native-aio=0
+        container_name: db
+        restart: always
+        tty: true
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: "root"
+            MYSQL_DATABASE: "dev"
+        volumes:
+            - ./application/database:/var/lib/mysql
+        networks:
+            - app-network
+
+
+    phpmyadmin:
+        image: phpmyadmin
+        restart: always
+        ports:
+          - 8080:8080
+        environment:
+          - PMA_ARBITRARY=1
+        depends_on: 
+          - db
+          - apachephp
+        networks:
+          - app-network
