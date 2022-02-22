@@ -19,17 +19,13 @@ services:
         restart: always
         tty: true
         ports:
-            - "8000:80"
-        #entrypoint: dockerize -template ./.docker/php/.env:/public/.env -wait tcp://db:3306 -wait -timeout 40s php-fpm
+            - "80:80"
+        volumes:
+            - ./application/html:/var/www/html
         environment: 
             - MYSQL_DATABASE=dev
             - MYSQL_ROOT_PASSWORD=root
             - MYSQL_USER=root
-        volumes:
-            #- ./docker/apache/000-default.conf:/etc/apache2/sites-enabled/000-default.conf
-            - ./application/html:/var/www
-            - ./application/logs/xdebug:/logs/xdebug
-            - ./docker/apache/xdebug.ini:/usr/local/etc/php/conf.d/zz-xdebug.ini
         networks:
             - app-network 
         depends_on: 
