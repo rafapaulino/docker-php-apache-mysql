@@ -19,7 +19,7 @@ services:
         restart: always
         tty: true
         ports:
-            - "80:80"
+            - "8002:80"
         volumes:
             - ./application/html:/var/www/html
         environment: 
@@ -60,7 +60,7 @@ services:
         image: phpmyadmin
         restart: always
         ports:
-          - 8080:8080
+          - 8003:80
         environment:
           - PMA_ARBITRARY=1
         depends_on: 
